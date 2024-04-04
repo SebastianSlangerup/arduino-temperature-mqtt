@@ -10,6 +10,11 @@
 
 #define DHTTYPE DHT11
 #define DHTPIN 2
+// Define standard values to measure against the temperature
+#define minTemperature 23.00
+#define maxTemperature 26.00
+#define minHumidity 45.00
+#define maxHumidity 55.00
 
 DHT dhtSensor(DHTPIN, DHTTYPE);
 rgb_lcd lcdScreen;
@@ -22,7 +27,6 @@ IPAddress ipAddress(192, 168, 1, 2);
 void setup() {
   Serial.begin(9600);
   lcdScreen.begin(16, 2);
-  lcdScreen.setRGB(0, 255, 0);
   dhtSensor.begin();
   Ethernet.begin(macAddress, ipAddress);
 
@@ -37,13 +41,36 @@ void setup() {
 }
 
 void loop() {
-  // put your main code here, to run repeatedly:
   float humidity = dhtSensor.readHumidity();
   float temperature = dhtSensor.readTemperature();
 
   if (isnan(humidity) || isnan(temperature)) {
     Serial.println("Failed reading from the DHT sensor. Please check pin connection!");
     return;
+  }
+  float minTempResult = minTemperature - temperature;
+  float minHumResult = minHumidity - humidity;
+  float maxTempResult = temperature - maxTemperature;
+  float maxHumResult = humidity - maxHumidity;
+  // Lots of prints used for debugging...
+  Serial.print("Current Temperature - Minimum Temperature = ");
+  Serial.println(minTempResult);
+  Serial.print("Current Humidity - Minimum Humidity = ");
+  Serial.println(minHumResult);
+  Serial.print("Maximum Temperature - Current Temperature = ");
+  Serial.println(maxTempResult);
+  Serial.print("Maximum Humidity - Current Humidity = ");
+  Serial.println(maxHumResult);
+
+  // Set colors on the LCD depending on the severity of the temperature
+  if ((minTempResult >= 10 || maxTempResult >= 10) || (minHumResult >= 20 || maxHumResult >= 20)) {
+    Serial.println("Critical threshhold reached...");
+    lcdScreen.setRGB(255, 0, 0);
+  } else if ((minTempResult >= 2 || maxTempResult >= 2) || (minHumResult >= 10 || maxHumResult >= 10)) {
+    Serial.println("Warning threshhold reached...");
+    lcdScreen.setRGB(155, 155, 0);
+  } else {
+    lcdScreen.setRGB(0, 255, 0);
   }
 
   // Print to LCD
@@ -61,7 +88,7 @@ void loop() {
   Serial.print("% \nTemperature: ");
   Serial.println(temperature);
 
-  delay(2000);
+  delay(5000);
 }
 
 // put function definitions here:
