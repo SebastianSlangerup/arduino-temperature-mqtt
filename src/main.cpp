@@ -7,7 +7,6 @@
 #include <Ethernet.h>
 #include <SRAM.h>
 #include <SPI.h>
-#include <string.h>
 
 #define DHTTYPE DHT11
 #define DHTPIN 2
@@ -28,6 +27,10 @@ IPAddress server(192, 168, 1, 139);
 EthernetClient ethClient;
 PubSubClient client(ethClient);
 
+/// @brief Convert a float to a string
+/// @param x The variable to convert 
+/// @param digits The amount of digits you want
+/// @return The decimal in a String object
 String decimal_to_string_float(unsigned int x, int digits) {
     String r = "";
     while((digits--)>0) {
@@ -114,8 +117,8 @@ void loop() {
 
   // Publish temperature and humidity readings to MQTT broker
   // TODO: Investigate a different way to convert temperature and humidity readings to a message WITHOUT using String class.
-  // Dynamic allocation is a big no no for embedded systems: https://forum.arduino.cc/t/how-do-you-convert-a-float-to-string-solved/237090/3
-  String message = "Temperature: " + decimal_to_string_float(temperature, 2) + " & Humidity: " + decimal_to_string_float(humidity, 2);
+  // Dynamic allocation is a big no no for embedded systems with limited memory: https://forum.arduino.cc/t/how-do-you-convert-a-float-to-string-solved/237090/3
+  String message = "Temperature: " + decimal_to_string_float(temperature, 2) + "c & Humidity: " + decimal_to_string_float(humidity, 2) + "%";
   client.publish("/mqtt", message.c_str());
 
   // Print to LCD
