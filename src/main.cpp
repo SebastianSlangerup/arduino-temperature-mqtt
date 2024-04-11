@@ -45,13 +45,12 @@ void reconnectClient() {
   while (!client.connected()) {
     Serial.print("Attempting MQTT connection...");
 
-    if (client.connect("arduinoClient")) {
+    if (client.connect("temperatureClient")) {
       Serial.println("connected");
     } else {
       Serial.print("failed: rc=");
       Serial.println(client.state());
     }
-    delay(5000);
   }
 }
 
@@ -118,8 +117,9 @@ void loop() {
   // Publish temperature and humidity readings to MQTT broker
   // TODO: Investigate a different way to convert temperature and humidity readings to a message WITHOUT using String class.
   // Dynamic allocation is a big no no for embedded systems with limited memory: https://forum.arduino.cc/t/how-do-you-convert-a-float-to-string-solved/237090/3
-  String message = "Temperature: " + decimal_to_string_float(temperature, 2) + "c & Humidity: " + decimal_to_string_float(humidity, 2) + "%";
-  client.publish("/mqtt", message.c_str());
+  String message = "T: " + decimal_to_string_float(temperature, 2) + ", H: " + decimal_to_string_float(humidity, 2);
+  client.publish("/mqtt/root/2/1/temperature", message.c_str());
+
 
   // Print to LCD
   lcdScreen.setCursor(0, 0);
